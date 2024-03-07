@@ -1131,7 +1131,6 @@ install_iplimit() {
     systemctl enable fail2ban
 
     echo -e "${green}IP Limit installed and configured successfully!${plain}\n"
-    before_show_menu
 }
 
 remove_iplimit() {
@@ -1352,6 +1351,12 @@ if [[ $# > 0 ]]; then
         ;;
     "uninstall")
         check_install 0 && uninstall 0
+        ;;
+    "bbr_enable")
+        enable_bbr
+        ;;
+    "install_fail2ban")
+        install_iplimit
         ;;
     *) show_usage ;;
     esac
