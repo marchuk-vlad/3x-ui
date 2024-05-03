@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"x-ui/config"
 	"x-ui/logger"
 	"x-ui/util/common"
@@ -23,9 +24,9 @@ import (
 	"x-ui/web/network"
 	"x-ui/web/service"
 
-	sessions "github.com/Calidity/gin-sessions"
-	"github.com/Calidity/gin-sessions/cookie"
 	"github.com/gin-contrib/gzip"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 )
@@ -295,7 +296,7 @@ func (s *Server) startTask() {
 }
 
 func (s *Server) Start() (err error) {
-	//This is an anonymous function, no function name
+	// This is an anonymous function, no function name
 	defer func() {
 		if err != nil {
 			s.Stop()

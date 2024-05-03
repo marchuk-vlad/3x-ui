@@ -1,5 +1,7 @@
 # 3X-UI
 
+[English](/README.md) | [Chinese](/README.zh.md) | [Español](/README.es_ES.md)
+
 <p align="center"><a href="#"><img src="./media/3X-UI.png" alt="Image"></a></p>
 
 **An Advanced Web Panel • Built on Xray Core**
@@ -26,10 +28,10 @@ bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.
 
 ## Install Custom Version
 
-To install your desired version, add the version to the end of the installation command. e.g., ver `v2.2.1`:
+To install your desired version, add the version to the end of the installation command. e.g., ver `v2.3.0`:
 
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.2.1
+bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.3.0
 ```
 
 ## SSL Certificate
@@ -45,8 +47,20 @@ The Management script has a built-in SSL certificate application for Cloudflare.
 - Cloudflare Global API Key
 - The domain name has been resolved to the current server through cloudflare
 
-**1:** Run the`x-ui`command on the terminal, then choose `Cloudflare SSL Certificate`.
+How to get the Cloudflare Global API Key:
 
+1. Run the`x-ui`command on the terminal, then choose `Cloudflare SSL Certificate`.
+
+2. Visit the link https://dash.cloudflare.com/profile/api-tokens
+
+3. Click on View Global API Key (See the screenshot below)
+        ![](media/APIKey1.PNG)
+
+4. You may have to re-authenticate your account. After that, the API Key will be shown (See the screenshot below)\
+        ![](media/APIKey2.png)
+
+When using, just enter `domain name`, `email`, `API KEY`, the diagram is as follows:
+        ![](media/DetailEnter.png)
 
 ### Certbot
 ```
@@ -77,6 +91,7 @@ case "${ARCH}" in
   armv7* | armv7) XUI_ARCH="armv7" ;;
   armv6* | armv6) XUI_ARCH="armv6" ;;
   armv5* | armv5) XUI_ARCH="armv5" ;;
+  s390x) echo 's390x' ;;
   *) XUI_ARCH="amd64" ;;
 esac
 
@@ -95,6 +110,7 @@ case "${ARCH}" in
   armv7* | armv7) XUI_ARCH="armv7" ;;
   armv6* | armv6) XUI_ARCH="armv6" ;;
   armv5* | armv5) XUI_ARCH="armv5" ;;
+  s390x) echo 's390x' ;;
   *) XUI_ARCH="amd64" ;;
 esac
 
@@ -179,10 +195,12 @@ remove 3x-ui from docker
 - CentOS 8+
 - Fedora 36+
 - Arch Linux
+- Parch Linux
 - Manjaro
 - Armbian
 - AlmaLinux 9+
-- Rockylinux 9+
+- Rocky Linux 9+
+- Oracle Linux 8+
 
 ## Supported Architectures and Devices
 
@@ -202,6 +220,8 @@ Our platform offers compatibility with a diverse range of architectures and devi
 - **armv6 / arm / arm32**: Geared towards very old embedded devices, this architecture, while less prevalent, is still in use. Devices such as Raspberry Pi 1, Raspberry Pi Zero/Zero W, rely on this architecture.
 
 - **armv5 / arm / arm32**: An older architecture primarily associated with early embedded systems, it is less common today but may still be found in legacy devices like early Raspberry Pi versions and some older smartphones.
+
+- **s390x**: This architecture is commonly used in IBM mainframe computers and offers high performance and reliability for enterprise workloads.
 </details>
 
 ## Languages
@@ -311,9 +331,9 @@ If you want to use routing to WARP before v2.1.0 follow steps as below:
   
   ```sh
     "log": {
-    "access": "./access.log",
-    "dnsLog": false,
-    "loglevel": "warning"
+      "access": "./access.log",
+      "dnsLog": false,
+      "loglevel": "warning"
     },
   ```
 

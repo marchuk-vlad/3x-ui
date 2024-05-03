@@ -374,6 +374,12 @@
       transform: translateZ(-100px);
     }
   }
+  .ant-menu-item .anticon {
+    margin-right: 4px;
+  }
+  .ant-menu-inline .ant-menu-item {
+    padding: 0 16px !important;
+  }
 </style>
 <body>
   <a-layout id="app" v-cloak :class="themeSwitcher.currentTheme">
@@ -394,7 +400,7 @@
             </g>
           </svg>
         </div>
-        <a-row type="flex" justify="center" align="middle" style="height: 100%; overflow: auto;">
+        <a-row type="flex" justify="center" align="middle" style="height: 100%; overflow: auto; overflow-x: hidden;">
           <a-col :xs="22" :sm="20" :md="14" :lg="10" :xl="8" :xxl="6" id="login" style="margin: 3rem 0;">
             <a-row type="flex" justify="center">
               <a-col style="width: 100%;">
@@ -410,19 +416,19 @@
               <a-col span="24">
                 <a-form>
                   <a-form-item>
-                    <a-input v-model.trim="user.username" placeholder='{{ i18n "username" }}'
+                    <a-input autocomplete="username" v-model.trim="user.username" placeholder='{{ i18n "username" }}'
                              @keydown.enter.native="login" autofocus>
                       <a-icon slot="prefix" type="user" style="font-size: 16px;"></a-icon>
                     </a-input>
                   </a-form-item>
                   <a-form-item>
-                    <password-input icon="lock" v-model.trim="user.password"
+                    <password-input autocomplete="current-password" icon="lock" v-model.trim="user.password"
                                     placeholder='{{ i18n "password" }}'
                                     @keydown.enter.native="login">
                     </password-input>
                   </a-form-item>
                   <a-form-item v-if="secretEnable">
-                    <password-input icon="key" v-model.trim="user.loginSecret"
+                    <password-input autocomplete="secret" icon="key" v-model.trim="user.loginSecret"
                                     placeholder='{{ i18n "secretToken" }}'
                                     @keydown.enter.native="login">
                     </password-input>
@@ -455,17 +461,7 @@
                   </a-form-item>
                   <a-form-item>
                     <a-row justify="center" class="centered">
-                      <a-col>
-                        <a-icon type="bulb" :theme="themeSwitcher.isDarkTheme ? 'filled' : 'outlined'"></a-icon>&nbsp;
-                      </a-col>
-                      <a-col>
-                        <theme-switch></theme-switch>
-                        <a-checkbox v-if="themeSwitcher.isDarkTheme" style="padding-left: 1rem; vertical-align: middle;"
-                                    :checked="themeSwitcher.isUltra"
-                                    @click="themeSwitcher.toggleUltra()">
-                                    Ultra
-                        </a-checkbox>
-                      </a-col>
+                      <theme-switch-login></theme-switch-login>
                     </a-row>
                   </a-form-item>
                 </a-form>
@@ -480,83 +476,82 @@
 {{template "component/themeSwitcher" .}}
 {{template "component/password" .}}
 <script>
-    class User {
-        constructor() {
-            this.username = "";
-            this.password = "";
+  class User {
+    constructor() {
+      this.username = "";
+      this.password = "";
+    }
+  }
+  const app = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#app',
+    data: {
+      themeSwitcher,
+      loading: false,
+      user: new User(),
+      secretEnable: false,
+      lang: ""
+    },
+    async created() {
+      this.lang = getLang();
+      this.secretEnable = await this.getSecretStatus();
+    },
+    methods: {
+      async login() {
+        this.loading = true;
+        const msg = await HttpUtil.post('/login', this.user);
+        this.loading = false;
+        if (msg.success) {
+          location.href = basePath + 'panel/';
         }
+      },
+      async getSecretStatus() {
+        this.loading = true;
+        const msg = await HttpUtil.post('/getSecretStatus');
+        this.loading = false;
+        if (msg.success) {
+          this.secretEnable = msg.obj;
+          return msg.obj;
+        }
+      },
+    },
+  });
+  document.addEventListener("DOMContentLoaded", function() {
+    var animationDelay = 2000;
+    initHeadline();
+
+    function initHeadline() {
+      animateHeadline(document.querySelectorAll('.headline'));
     }
 
-    const app = new Vue({
-        delimiters: ['[[', ']]'],
-        el: '#app',
-        data: {
-            themeSwitcher,
-            loading: false,
-            user: new User(),
-            secretEnable: false,
-            lang: ""
-        },
-        async created() {
-            this.lang = getLang();
-            this.secretEnable = await this.getSecretStatus();
-        },
-        methods: {
-            async login() {
-                this.loading = true;
-                const msg = await HttpUtil.post('/login', this.user);
-                this.loading = false;
-                if (msg.success) {
-                    location.href = basePath + 'panel/';
-                }
-            },
-            async getSecretStatus() {
-                this.loading = true;
-                const msg = await HttpUtil.post('/getSecretStatus');
-                this.loading = false;
-                if (msg.success) {
-                    this.secretEnable = msg.obj;
-                    return msg.obj;
-                }
-            },
-        },
-    });
-    document.addEventListener("DOMContentLoaded", function() {
-        var animationDelay = 2000;
-        initHeadline();
+    function animateHeadline(headlines) {
+      var duration = animationDelay;
+      headlines.forEach(function(headline) {
+        setTimeout(function() {
+          hideWord(headline.querySelector('.is-visible'));
+        }, duration);
+      });
+    }
 
-        function initHeadline() {
-            animateHeadline(document.querySelectorAll('.headline'));
-        }
+    function hideWord(word) {
+      var nextWord = takeNext(word);
+      switchWord(word, nextWord);
+      setTimeout(function() {
+        hideWord(nextWord);
+      }, animationDelay);
+    }
 
-        function animateHeadline(headlines) {
-            var duration = animationDelay;
-            headlines.forEach(function(headline) {
-                setTimeout(function() {
-                    hideWord(headline.querySelector('.is-visible'));
-                }, duration);
-            });
-        }
+    function takeNext(word) {
+      return (word.nextElementSibling) ? word.nextElementSibling : word.parentElement.firstElementChild;
+    }
 
-        function hideWord(word) {
-            var nextWord = takeNext(word);
-            switchWord(word, nextWord);
-            setTimeout(function() {
-                hideWord(nextWord);
-            }, animationDelay);
-        }
-
-        function takeNext(word) {
-            return (word.nextElementSibling) ? word.nextElementSibling : word.parentElement.firstElementChild;
-        }
-
-        function switchWord(oldWord, newWord) {
-            oldWord.classList.remove('is-visible');
-            oldWord.classList.add('is-hidden');
-            newWord.classList.remove('is-hidden');
-            newWord.classList.add('is-visible');
-        }
-    });
+    function switchWord(oldWord, newWord) {
+      oldWord.classList.remove('is-visible');
+      oldWord.classList.add('is-hidden');
+      newWord.classList.remove('is-hidden');
+      newWord.classList.add('is-visible');
+    }
+  });
 </script>
 </body>
 </html>
