@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
 	"strings"
 
@@ -9,7 +10,16 @@ import (
 
 func DomainValidatorMiddleware(domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		host := strings.Split(c.Request.Host, ":")[0]
+		host := c.GetHeader("X-Forwarded-Host")
+		if host == "" {
+			host = c.GetHeader("X-Real-IP")
+		}
+		if host == "" {
+			host = c.Request.Host
+			if colonIndex := strings.LastIndex(host, ":"); colonIndex != -1 {
+				host, _, _ = net.SplitHostPort(host)
+			}
+		}
 
 		if host != domain {
 			c.AbortWithStatus(http.StatusForbidden)

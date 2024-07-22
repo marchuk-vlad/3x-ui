@@ -40,10 +40,14 @@ os_version=$(grep -i version_id /etc/os-release | cut -d \" -f2 | cut -d . -f1)
 
 if [[ "${release}" == "arch" ]]; then
     echo "Your OS is Arch Linux"
+elif [[ "${release}" == "parch" ]]; then
+    echo "Your OS is Parch linux"
 elif [[ "${release}" == "manjaro" ]]; then
     echo "Your OS is Manjaro"
 elif [[ "${release}" == "armbian" ]]; then
     echo "Your OS is Armbian"
+elif [[ "${release}" == "opensuse-tumbleweed" ]]; then
+    echo "Your OS is OpenSUSE Tumbleweed"
 elif [[ "${release}" == "centos" ]]; then
     if [[ ${os_version} -lt 8 ]]; then
         echo -e "${red} Please use CentOS 8 or higher ${plain}\n" && exit 1
@@ -80,11 +84,13 @@ else
     echo "- CentOS 8+"
     echo "- Fedora 36+"
     echo "- Arch Linux"
+    echo "- Parch Linux"
     echo "- Manjaro"
     echo "- Armbian"
     echo "- AlmaLinux 9+"
     echo "- Rocky Linux 9+"
     echo "- Oracle Linux 8+"
+    echo "- OpenSUSE Tumbleweed"
     exit 1
 
 fi
@@ -148,6 +154,30 @@ update() {
     if [[ $? == 0 ]]; then
         LOGI "Update is complete, Panel has automatically restarted "
         exit 0
+    fi
+}
+
+update_menu() {
+    echo -e "${yellow}Updating Menu${plain}"
+    confirm "This function will update the menu to the latest changes." "y"
+    if [[ $? != 0 ]]; then
+        LOGE "Cancelled"
+        if [[ $# == 0 ]]; then
+            before_show_menu
+        fi
+        return 0
+    fi
+    
+    wget --no-check-certificate -O /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
+    chmod +x /usr/local/x-ui/x-ui.sh
+    chmod +x /usr/bin/x-ui
+    
+     if [[ $? == 0 ]]; then
+        echo -e "${green}Update successful. The panel has automatically restarted.${plain}"
+        exit 0
+    else
+        echo -e "${red}Failed to update the menu.${plain}"
+        return 1
     fi
 }
 
@@ -220,6 +250,31 @@ reset_user() {
     echo -e "${yellow} Panel login secret token disabled ${plain}"
     echo -e "${green} Please use the new login username and password to access the X-UI panel. Also remember them! ${plain}"
     confirm_restart
+}
+
+gen_random_string() {
+    local length="$1"
+    local random_string=$(LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$length" | head -n 1)
+    echo "$random_string"
+}
+
+reset_webbasepath() {
+    echo -e "${yellow}Resetting Web Base Path${plain}"
+    
+    # Prompt user to set a new web base path
+    read -rp "Please set the new web base path [press 'y' for a random path]: " config_webBasePath
+    
+    if [[ $config_webBasePath == "y" ]]; then
+        config_webBasePath=$(gen_random_string 10)
+    fi
+    
+    # Apply the new web base path setting
+    /usr/local/x-ui/x-ui setting -webBasePath "${config_webBasePath}" >/dev/null 2>&1
+    systemctl restart x-ui
+    
+    # Display confirmation message
+    echo -e "Web base path has been reset to: ${green}${config_webBasePath}${plain}"
+    echo -e "${green}Please use the new web base path to access the panel.${plain}"
 }
 
 reset_config() {
@@ -812,7 +867,7 @@ ssl_cert_issue() {
     # NOTE:This should be handled by user
     # open the port and kill the occupied progress
     ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-    ~/.acme.sh/acme.sh --issue -d ${domain} --standalone --httpport ${WebPort}
+    ~/.acme.sh/acme.sh --issue -d ${domain} --listen-v6 --standalone --httpport ${WebPort}
     if [ $? -ne 0 ]; then
         LOGE "issue certs failed,please check logs"
         rm -rf ~/.acme.sh/${domain}
@@ -1062,8 +1117,9 @@ iplimit_main() {
     echo -e "${green}\t2.${plain} Change Ban Duration"
     echo -e "${green}\t3.${plain} Unban Everyone"
     echo -e "${green}\t4.${plain} Check Logs"
-    echo -e "${green}\t5.${plain} fail2ban status"
-    echo -e "${green}\t6.${plain} Uninstall IP Limit"
+    echo -e "${green}\t5.${plain} Fail2ban Status"
+    echo -e "${green}\t6.${plain} Restart Fail2ban"
+    echo -e "${green}\t7.${plain} Uninstall Fail2ban"
     echo -e "${green}\t0.${plain} Back to Main Menu"
     read -p "Choose an option: " choice
     case "$choice" in
@@ -1106,8 +1162,10 @@ iplimit_main() {
     5)
         service fail2ban status
         ;;
-
     6)
+        systemctl restart fail2ban
+        ;;
+    7)
         remove_iplimit
         ;;
     *) echo "Invalid choice" ;;
@@ -1120,7 +1178,14 @@ install_iplimit() {
 
         # Check the OS and install necessary packages
         case "${release}" in
-        ubuntu | debian | armbian)
+        ubuntu)
+            if [[ "${os_version}" -ge 24 ]]; then
+                apt update && apt install python3-pip -y
+                python3 -m pip install pyasynchat --break-system-packages
+            fi
+            apt update && apt install fail2ban -y
+            ;;
+        debian | armbian)
             apt update && apt install fail2ban -y
             ;;
         centos | almalinux | rocky | oracle)
@@ -1131,8 +1196,8 @@ install_iplimit() {
             dnf -y update && dnf -y install fail2ban
             ;;
         arch | manjaro | parch)
-        pacman -Syu --noconfirm fail2ban
-        ;;
+            pacman -Syu --noconfirm fail2ban
+            ;;
         *)
             echo -e "${red}Unsupported operating system. Please check the script and install the necessary packages manually.${plain}\n"
             exit 1
@@ -1236,57 +1301,62 @@ remove_iplimit() {
 show_usage() {
     echo "x-ui control menu usages: "
     echo "------------------------------------------"
-    echo -e "x-ui              - Enter control menu"
-    echo -e "x-ui start        - Start x-ui "
-    echo -e "x-ui stop         - Stop  x-ui "
-    echo -e "x-ui restart      - Restart x-ui "
-    echo -e "x-ui status       - Show x-ui status"
-    echo -e "x-ui enable       - Enable x-ui on system startup"
-    echo -e "x-ui disable      - Disable x-ui on system startup"
-    echo -e "x-ui log          - Check x-ui logs"
+    echo -e "SUBCOMMANDS:"
+    echo -e "x-ui              - Admin Management Script"
+    echo -e "x-ui start        - Start"
+    echo -e "x-ui stop         - Stop"
+    echo -e "x-ui restart      - Restart"
+    echo -e "x-ui status       - Current Status"
+    echo -e "x-ui settings     - Current Settings"
+    echo -e "x-ui enable       - Enable Autostart on OS Startup"
+    echo -e "x-ui disable      - Disable Autostart on OS Startup"
+    echo -e "x-ui log          - Check logs"
     echo -e "x-ui banlog       - Check Fail2ban ban logs"
-    echo -e "x-ui update       - Update x-ui "
-    echo -e "x-ui install      - Install x-ui "
-    echo -e "x-ui uninstall    - Uninstall x-ui "
+    echo -e "x-ui update       - Update"
+    echo -e "x-ui custom       - custom version"
+    echo -e "x-ui install      - Install"
+    echo -e "x-ui uninstall    - Uninstall"
     echo "------------------------------------------"
 }
 
 show_menu() {
     echo -e "
-  ${green}3X-ui Panel Management Script${plain}
+  ${green}3X-UI Panel Management Script${plain}
   ${green}0.${plain} Exit Script
 ————————————————
   ${green}1.${plain} Install
   ${green}2.${plain} Update
-  ${green}3.${plain} Custom Version
-  ${green}4.${plain} Uninstall
+  ${green}3.${plain} Update Menu
+  ${green}4.${plain} Custom Version
+  ${green}5.${plain} Uninstall
 ————————————————
-  ${green}5.${plain} Reset Username & Password & Secret Token
-  ${green}6.${plain} Reset Settings
-  ${green}7.${plain} Change Port
-  ${green}8.${plain} View Current Settings
+  ${green}6.${plain} Reset Username & Password & Secret Token
+  ${green}7.${plain} Reset Web Base Path
+  ${green}8.${plain} Reset Settings
+  ${green}9.${plain} Change Port
+  ${green}10.${plain} View Current Settings
 ————————————————
-  ${green}9.${plain} Start
-  ${green}10.${plain} Stop
-  ${green}11.${plain} Restart
-  ${green}12.${plain} Check Status
-  ${green}13.${plain} Check Logs
+  ${green}11.${plain} Start
+  ${green}12.${plain} Stop
+  ${green}13.${plain} Restart
+  ${green}14.${plain} Check Status
+  ${green}15.${plain} Check Logs
 ————————————————
-  ${green}14.${plain} Enable Autostart
-  ${green}15.${plain} Disable Autostart
+  ${green}16.${plain} Enable Autostart
+  ${green}17.${plain} Disable Autostart
 ————————————————
-  ${green}16.${plain} SSL Certificate Management
-  ${green}17.${plain} Cloudflare SSL Certificate
-  ${green}18.${plain} IP Limit Management
-  ${green}19.${plain} WARP Management
-  ${green}20.${plain} Firewall Management
+  ${green}18.${plain} SSL Certificate Management
+  ${green}19.${plain} Cloudflare SSL Certificate
+  ${green}20.${plain} IP Limit Management
+  ${green}21.${plain} WARP Management
+  ${green}22.${plain} Firewall Management
 ————————————————
-  ${green}21.${plain} Enable BBR 
-  ${green}22.${plain} Update Geo Files
-  ${green}23.${plain} Speedtest by Ookla
+  ${green}23.${plain} Enable BBR 
+  ${green}24.${plain} Update Geo Files
+  ${green}25.${plain} Speedtest by Ookla
 "
     show_status
-    echo && read -p "Please enter your selection [0-23]: " num
+    echo && read -p "Please enter your selection [0-25]: " num
 
     case "${num}" in
     0)
@@ -1299,70 +1369,76 @@ show_menu() {
         check_install && update
         ;;
     3)
-        check_install && custom_version
+        check_install && update_menu
         ;;
     4)
-        check_install && uninstall
+        check_install && custom_version
         ;;
     5)
-        check_install && reset_user
+        check_install && uninstall
         ;;
     6)
-        check_install && reset_config
+        check_install && reset_user
         ;;
     7)
-        check_install && set_port
+        check_install && reset_webbasepath
         ;;
     8)
-        check_install && check_config
+        check_install && reset_config
         ;;
     9)
-        check_install && start
+        check_install && set_port
         ;;
     10)
-        check_install && stop
+        check_install && check_config
         ;;
     11)
-        check_install && restart
+        check_install && start
         ;;
     12)
-        check_install && status
+        check_install && stop
         ;;
     13)
-        check_install && show_log
+        check_install && restart
         ;;
     14)
-        check_install && enable
+        check_install && status
         ;;
     15)
-        check_install && disable
+        check_install && show_log
         ;;
     16)
-        ssl_cert_issue_main
+        check_install && enable
         ;;
     17)
-        ssl_cert_issue_CF
+        check_install && disable
         ;;
     18)
-        iplimit_main
+        ssl_cert_issue_main
         ;;
     19)
-        warp_cloudflare
+        ssl_cert_issue_CF
         ;;
     20)
-        firewall_menu
+        iplimit_main
         ;;
     21)
-        bbr_menu
+        warp_cloudflare
         ;;
     22)
-        update_geo
+        firewall_menu
         ;;
     23)
+        bbr_menu
+        ;;
+    24)
+        update_geo
+        ;;
+    25)
         run_speedtest
         ;;
     *)
-        LOGE "Please enter the correct number [0-23]"
+        LOGE "Please enter the correct number [0-25]"
         ;;
     esac
 }
@@ -1381,6 +1457,9 @@ if [[ $# > 0 ]]; then
     "status")
         check_install 0 && status 0
         ;;
+    "settings")
+        check_install 0 && check_config 0
+        ;;
     "enable")
         check_install 0 && enable 0
         ;;
@@ -1395,6 +1474,9 @@ if [[ $# > 0 ]]; then
         ;;
     "update")
         check_install 0 && update 0
+        ;;
+    "custom")
+        check_install 0 && custom_version 0
         ;;
     "install")
         check_uninstall 0 && install 0
