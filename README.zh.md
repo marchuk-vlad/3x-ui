@@ -1,5 +1,3 @@
-# 3X-UI
-
 [English](/README.md) | [Chinese](/README.zh.md) | [Español](/README.es_ES.md)
 
 <p align="center"><a href="#"><img src="./media/3X-UI.png" alt="Image"></a></p>
@@ -19,6 +17,8 @@
 <p align="left"><a href="#"><img width="125" src="https://github.com/MHSanaei/3x-ui/assets/115543613/7aa895dd-048a-42e7-989b-afd41a74e2e1" alt="Image"></a></p>
 
 - USDT (TRC20): `TXncxkvhkDWGts487Pjqq1qT9JmwRUz8CC`
+- MATIC (polygon): `0x41C9548675D044c6Bfb425786C765bc37427256A`
+- LTC (Litecoin): `ltc1q2ach7x6d2zq0n4l0t4zl7d7xe2s6fs7a3vspwv`
 
 ## 安装 & 升级
 
@@ -28,10 +28,10 @@ bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.
 
 ## 安装指定版本
 
-要安装所需的版本，请将该版本添加到安装命令的末尾。 e.g., ver `v2.2.8`:
+要安装所需的版本，请将该版本添加到安装命令的末尾。 e.g., ver `v2.3.6`:
 
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.2.8
+bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.3.6
 ```
 
 ## SSL 认证
@@ -185,6 +185,7 @@ systemctl restart x-ui
 - Armbian
 - AlmaLinux 9+
 - Rockylinux 9+
+- OpenSUSE Tubleweed
 
 ## 支持的架构和设备
 <details>
@@ -256,7 +257,7 @@ systemctl restart x-ui
  
 </details>
 
-## [WARP 配置](https://gitlab.com/fscarmen/warp)
+## WARP 配置
 
 <details>
   <summary>点击查看 WARP 配置</summary>
@@ -395,25 +396,25 @@ Web 面板通过 Telegram Bot 支持每日流量、面板登录、数据库备�
 - `/login` 使用 `POST` 用户名称 & 密码： `{username: '', password: ''}` 登录
 - `/panel/api/inbounds` 以下操作的基础：
 
-| 方法   |  路径                               | 操作                                        |
-| :----: | ---------------------------------- | ------------------------------------------- |
-| `GET`  | `"/list"`                          | 获取所有入站                                 |
-| `GET`  | `"/get/:id"`                       | 获取所有入站以及inbound.id                   |
-| `GET`  | `"/getClientTraffics/:email"`      | 通过电子邮件获取客户端流量                    |
-| `GET`  | `"/createbackup"`                  | Telegram 机器人向管理员发送备份               |
-| `POST` | `"/add"`                           | 添加入站                                    |
-| `POST` | `"/del/:id"`                       | 删除入站                                    |
-| `POST` | `"/update/:id"`                    | 更新入站                                    |
-| `POST` | `"/clientIps/:email"`              | 客户端 IP 地址                              | 
-| `POST` | `"/clearClientIps/:email"`         | 清除客户端 IP 地址                           |
-| `POST` | `"/addClient"`                     | 将客户端添加到入站                           |
-| `POST` | `"/:id/delClient/:clientId"`       | 通过 clientId\* 删除客户端                   |
-| `POST` | `"/updateClient/:clientId"`        | 通过 clientId\* 更新客户端                   |
-| `POST` | `"/:id/resetClientTraffic/:email"` | 重置客户端的流量                             |
-| `POST` | `"/resetAllTraffics"`              | 重置所有入站的流量                           |
-| `POST` | `"/resetAllClientTraffics/:id"`    | 重置入站中所有客户端的流量                    |
-| `POST` | `"/delDepletedClients/:id"`        | 删除入站耗尽的客户端 （-1： all）             |
-| `POST` | `"/onlines"`                       | 获取在线用户 （ 电子邮件列表 ）               |
+|  方法  | 路径                               | 操作                              |
+| :----: | ---------------------------------- | --------------------------------- |
+| `GET`  | `"/list"`                          | 获取所有入站                      |
+| `GET`  | `"/get/:id"`                       | 获取所有入站以及inbound.id        |
+| `GET`  | `"/getClientTraffics/:email"`      | 通过电子邮件获取客户端流量        |
+| `GET`  | `"/createbackup"`                  | Telegram 机器人向管理员发送备份   |
+| `POST` | `"/add"`                           | 添加入站                          |
+| `POST` | `"/del/:id"`                       | 删除入站                          |
+| `POST` | `"/update/:id"`                    | 更新入站                          |
+| `POST` | `"/clientIps/:email"`              | 客户端 IP 地址                    |
+| `POST` | `"/clearClientIps/:email"`         | 清除客户端 IP 地址                |
+| `POST` | `"/addClient"`                     | 将客户端添加到入站                |
+| `POST` | `"/:id/delClient/:clientId"`       | 通过 clientId\* 删除客户端        |
+| `POST` | `"/updateClient/:clientId"`        | 通过 clientId\* 更新客户端        |
+| `POST` | `"/:id/resetClientTraffic/:email"` | 重置客户端的流量                  |
+| `POST` | `"/resetAllTraffics"`              | 重置所有入站的流量                |
+| `POST` | `"/resetAllClientTraffics/:id"`    | 重置入站中所有客户端的流量        |
+| `POST` | `"/delDepletedClients/:id"`        | 删除入站耗尽的客户端 （-1： all） |
+| `POST` | `"/onlines"`                       | 获取在线用户 （ 电子邮件列表 ）   |
 
 \*- `clientId` 项应该使用下列数据
 
@@ -433,7 +434,7 @@ Web 面板通过 Telegram Bot 支持每日流量、面板登录、数据库备�
 
 #### Usage
 
-| 变量            |                      Type                      | 默认          |
+| 变量           |                      Type                      | 默认          |
 | -------------- | :--------------------------------------------: | :------------ |
 | XUI_LOG_LEVEL  | `"debug"` \| `"info"` \| `"warn"` \| `"error"` | `"info"`      |
 | XUI_DEBUG      |                   `boolean`                    | `false`       |

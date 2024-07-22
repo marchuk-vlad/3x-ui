@@ -202,12 +202,11 @@ func (s *SubService) genVmessLink(inbound *model.Inbound, email string) string {
 	case "ws":
 		ws, _ := stream["wsSettings"].(map[string]interface{})
 		obj["path"] = ws["path"].(string)
-		obj["host"] = ws["host"].(string)
-		if headers, ok := ws["headers"].(map[string]interface{}); ok {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				obj["host"] = hostFromHeaders
-			}
+		if host, ok := ws["host"].(string); ok && len(host) > 0 {
+			obj["host"] = host
+		} else {
+			headers, _ := ws["headers"].(map[string]interface{})
+			obj["host"] = searchHost(headers)
 		}
 	case "http":
 		obj["net"] = "h2"
@@ -230,12 +229,20 @@ func (s *SubService) genVmessLink(inbound *model.Inbound, email string) string {
 	case "httpupgrade":
 		httpupgrade, _ := stream["httpupgradeSettings"].(map[string]interface{})
 		obj["path"] = httpupgrade["path"].(string)
-		obj["host"] = httpupgrade["host"].(string)
-		if headers, ok := httpupgrade["headers"].(map[string]interface{}); ok {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				obj["host"] = hostFromHeaders
-			}
+		if host, ok := httpupgrade["host"].(string); ok && len(host) > 0 {
+			obj["host"] = host
+		} else {
+			headers, _ := httpupgrade["headers"].(map[string]interface{})
+			obj["host"] = searchHost(headers)
+		}
+	case "splithttp":
+		splithttp, _ := stream["splithttpSettings"].(map[string]interface{})
+		obj["path"] = splithttp["path"].(string)
+		if host, ok := splithttp["host"].(string); ok && len(host) > 0 {
+			obj["host"] = host
+		} else {
+			headers, _ := splithttp["headers"].(map[string]interface{})
+			obj["host"] = searchHost(headers)
 		}
 	}
 	security, _ := stream["security"].(string)
@@ -352,13 +359,11 @@ func (s *SubService) genVlessLink(inbound *model.Inbound, email string) string {
 	case "ws":
 		ws, _ := stream["wsSettings"].(map[string]interface{})
 		params["path"] = ws["path"].(string)
-		params["host"] = ws["host"].(string)
-		headers, _ := ws["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := ws["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := ws["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	case "http":
 		http, _ := stream["httpSettings"].(map[string]interface{})
@@ -380,13 +385,20 @@ func (s *SubService) genVlessLink(inbound *model.Inbound, email string) string {
 	case "httpupgrade":
 		httpupgrade, _ := stream["httpupgradeSettings"].(map[string]interface{})
 		params["path"] = httpupgrade["path"].(string)
-		params["host"] = httpupgrade["host"].(string)
-		headers, _ := httpupgrade["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := httpupgrade["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := httpupgrade["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
+		}
+	case "splithttp":
+		splithttp, _ := stream["splithttpSettings"].(map[string]interface{})
+		params["path"] = splithttp["path"].(string)
+		if host, ok := splithttp["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := splithttp["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	}
 	security, _ := stream["security"].(string)
@@ -581,13 +593,11 @@ func (s *SubService) genTrojanLink(inbound *model.Inbound, email string) string 
 	case "ws":
 		ws, _ := stream["wsSettings"].(map[string]interface{})
 		params["path"] = ws["path"].(string)
-		params["host"] = ws["host"].(string)
-		headers, _ := ws["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := ws["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := ws["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	case "http":
 		http, _ := stream["httpSettings"].(map[string]interface{})
@@ -609,13 +619,20 @@ func (s *SubService) genTrojanLink(inbound *model.Inbound, email string) string 
 	case "httpupgrade":
 		httpupgrade, _ := stream["httpupgradeSettings"].(map[string]interface{})
 		params["path"] = httpupgrade["path"].(string)
-		params["host"] = httpupgrade["host"].(string)
-		headers, _ := httpupgrade["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := httpupgrade["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := httpupgrade["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
+		}
+	case "splithttp":
+		splithttp, _ := stream["splithttpSettings"].(map[string]interface{})
+		params["path"] = splithttp["path"].(string)
+		if host, ok := splithttp["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := splithttp["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	}
 	security, _ := stream["security"].(string)
@@ -811,13 +828,11 @@ func (s *SubService) genShadowsocksLink(inbound *model.Inbound, email string) st
 	case "ws":
 		ws, _ := stream["wsSettings"].(map[string]interface{})
 		params["path"] = ws["path"].(string)
-		params["host"] = ws["host"].(string)
-		headers, _ := ws["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := ws["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := ws["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	case "http":
 		http, _ := stream["httpSettings"].(map[string]interface{})
@@ -839,13 +854,20 @@ func (s *SubService) genShadowsocksLink(inbound *model.Inbound, email string) st
 	case "httpupgrade":
 		httpupgrade, _ := stream["httpupgradeSettings"].(map[string]interface{})
 		params["path"] = httpupgrade["path"].(string)
-		params["host"] = httpupgrade["host"].(string)
-		headers, _ := httpupgrade["headers"].(map[string]interface{})
-		if headers != nil {
-			hostFromHeaders := searchHost(headers)
-			if hostFromHeaders != "" {
-				params["host"] = hostFromHeaders
-			}
+		if host, ok := httpupgrade["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := httpupgrade["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
+		}
+	case "splithttp":
+		splithttp, _ := stream["splithttpSettings"].(map[string]interface{})
+		params["path"] = splithttp["path"].(string)
+		if host, ok := splithttp["host"].(string); ok && len(host) > 0 {
+			params["host"] = host
+		} else {
+			headers, _ := splithttp["headers"].(map[string]interface{})
+			params["host"] = searchHost(headers)
 		}
 	}
 
@@ -985,9 +1007,36 @@ func (s *SubService) genRemark(inbound *model.Inbound, email string, extra strin
 			now := time.Now().Unix()
 			switch exp := stats.ExpiryTime / 1000; {
 			case exp > 0:
-				remark = append(remark, fmt.Sprintf("%d%s⏳", (exp-now)/86400, "Days"))
+				remainingSeconds := exp - now
+				days := remainingSeconds / 86400
+				hours := (remainingSeconds % 86400) / 3600
+				minutes := (remainingSeconds % 3600) / 60
+				if days > 0 {
+					if hours > 0 {
+						remark = append(remark, fmt.Sprintf("%dD,%dH⏳", days, hours))
+					} else {
+						remark = append(remark, fmt.Sprintf("%dD⏳", days))
+					}
+				} else if hours > 0 {
+					remark = append(remark, fmt.Sprintf("%dH⏳", hours))
+				} else {
+					remark = append(remark, fmt.Sprintf("%dM⏳", minutes))
+				}
 			case exp < 0:
-				remark = append(remark, fmt.Sprintf("%d%s⏳", exp/-86400, "Days"))
+				days := exp / -86400
+				hours := (exp % -86400) / 3600
+				minutes := (exp % -3600) / 60
+				if days > 0 {
+					if hours > 0 {
+						remark = append(remark, fmt.Sprintf("%dD,%dH⏳", days, hours))
+					} else {
+						remark = append(remark, fmt.Sprintf("%dD⏳", days))
+					}
+				} else if hours > 0 {
+					remark = append(remark, fmt.Sprintf("%dH⏳", hours))
+				} else {
+					remark = append(remark, fmt.Sprintf("%dM⏳", minutes))
+				}
 			}
 		}
 	}
